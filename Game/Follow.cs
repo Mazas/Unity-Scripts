@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+/*Enemy AI to follow
+ *Requires NavMesh
+ */
 public class Follow : MonoBehaviour {
 	private Transform player;
 	private UnityEngine.AI.NavMeshAgent nav;
