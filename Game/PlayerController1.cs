@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour {
+public class PlayerController1 : MonoBehaviour {
     public float speed = 2000f;
     public GameObject lazer;
 	private Rigidbody rb;
