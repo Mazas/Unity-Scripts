@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,7 +24,7 @@ public class EnemyHealth : MonoBehaviour
         {
             health.CurrentVal -= 1;
             onFire = false;
-            if (health.CurrentVal == 0)
+            if (health.CurrentVal <= 0)
             {
                 Die();
             }
@@ -62,7 +62,7 @@ public class EnemyHealth : MonoBehaviour
     void TakeDamage(float damage)
     {
         health.CurrentVal -= damage;
-        if (health.CurrentVal == 0)
+        if (health.CurrentVal <= 0)
         {
            Die();
         }
@@ -73,6 +73,10 @@ public class EnemyHealth : MonoBehaviour
         gameObject.GetComponent<Animator>().SetTrigger("die");
         Destroy(gameObject.GetComponent<Tadas_EnemyScript>());
         gameObject.GetComponent<CapsuleCollider>().enabled = false;
-        transform.FindChild("Hips").FindChild("Sword").GetComponent<CapsuleCollider>().enabled = false;
+        CapsuleCollider[] colliders = GetComponentsInChildren<CapsuleCollider>();
+        foreach (CapsuleCollider collider in colliders)
+        {
+            collider.enabled = false;
+        }
     }
 }
