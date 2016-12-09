@@ -1,96 +1,108 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class Tadas_PlayerController : MonoBehaviour
 {
-    public float speed = 10f;
-    private Rigidbody rb;
-    private bool isOnFloor = true;
-    private Animator anim;
+    public float speed = 1f;
 
-    private float forward;
-    private float back;
-    private float left;
-    private float right;
-    private float leftForward;
-    private float rightBack;
-    private float leftBack;
-    private float rightForward;
+    private Rigidbody rb;
+    public bool isOnFloor = true;
+    private Animator anim;
+    private float h;
+    private T_LockOnCamera cameraScript;
+
+    private bool paused = false;
+    private GameObject pauseMenu;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
+        pauseMenu = GameObject.FindGameObjectWithTag("Pause");
+        pauseMenu.SetActive(false);
+        cameraScript = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<T_LockOnCamera>();
     }
-
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            PauseGame();
+        }
+    }
     void FixedUpdate()
     {
         if (isOnFloor)
         {
             if ((Input.GetKey(KeyCode.W) && !(Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))) || (Input.GetKey(KeyCode.UpArrow) && !(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.LeftArrow))))
             {
-                anim.SetBool("IsWalking", true);
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, forward, 0), speed * Time.fixedDeltaTime);
                 Go();
             }
             if ((Input.GetKey(KeyCode.S) && !(Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))) || (Input.GetKey(KeyCode.DownArrow) && !(Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.LeftArrow))))
             {
-                anim.SetBool("IsWalking", true);
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, back, 0), speed * Time.fixedDeltaTime);
-                Go();
+                GoBack();
             }
             if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
             {
                 if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
                 {
-                    anim.SetBool("IsWalking", true);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, rightForward, 0), speed * Time.fixedDeltaTime);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, transform.rotation.eulerAngles.y + 90, 0), speed * Time.fixedDeltaTime);
                     Go();
                 }
                 else if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
                 {
-                    anim.SetBool("IsWalking", true);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, rightBack, 0), speed * Time.fixedDeltaTime);
-                    Go();
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, transform.rotation.eulerAngles.y + -90, 0), (speed / 3 * 2) * Time.fixedDeltaTime);
+                    GoBack();
+                }
+                else if (cameraScript.targeting)
+                {
+                    transform.Translate(Vector3.right * speed * Time.deltaTime, Space.Self);
+                    anim.SetTrigger("WalkRight");
+
                 }
                 else
                 {
-                    anim.SetBool("IsWalking", true);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, right, 0), speed * Time.fixedDeltaTime);
-                    Go();
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, transform.rotation.eulerAngles.y + 90, 0), speed * Time.fixedDeltaTime);
                 }
             }
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
             {
                 if (Input.GetKey(KeyCode.W))
                 {
-                    anim.SetBool("IsWalking", true);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, leftForward, 0), speed * Time.fixedDeltaTime);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, transform.rotation.eulerAngles.y + -90, 0), speed * Time.fixedDeltaTime);
                     Go();
                 }
                 else if (Input.GetKey(KeyCode.S) | Input.GetKey(KeyCode.DownArrow))
                 {
-                    anim.SetBool("IsWalking", true);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, leftBack, 0), speed * Time.fixedDeltaTime);
-                    Go();
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, transform.rotation.eulerAngles.y + 90, 0), (speed / 3 * 2) * Time.fixedDeltaTime);
+                    GoBack();
                 }
-                else
+                else if (cameraScript.targeting)
                 {
-                    anim.SetBool("IsWalking", true);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, left, 0), speed * Time.fixedDeltaTime);
-                    Go();
+                    transform.Translate(Vector3.left * speed * Time.deltaTime, Space.Self);
+                    anim.SetTrigger("WalkLeft");
+                }else
+                {
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, transform.rotation.eulerAngles.y + -90, 0), speed * Time.fixedDeltaTime);
                 }
             }
             if (Input.GetKeyDown(KeyCode.Space) && isOnFloor)
             {
-                rb.AddForce(Vector3.up * 200);
+                rb.AddForce(Vector3.up * 150);
                 isOnFloor = false;
+                anim.SetBool("Jump", true);
             }
             if (!IsMovementKeyPressed() && isOnFloor)
             {
-                anim.SetBool("IsWalking", false);
+                anim.SetBool("Walk_Back", false);
+                anim.SetFloat("Turn", 0f);
+                anim.SetFloat("Run", 0f);
+            }
+            if (cameraScript.targeting&&!IsMovementKeyPressed())
+            {
+                cameraScript.LookAtTarget();
             }
         }
     }
+
     void OnCollisionEnter(Collision other)
     {
         if (other.collider.tag.Equals("Floor"))
@@ -99,6 +111,7 @@ public class PlayerController : MonoBehaviour
         }
         else return;
     }
+
     public bool IsMovementKeyPressed()
     {
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) ||
@@ -108,56 +121,39 @@ public class PlayerController : MonoBehaviour
         }
         return false;
     }
+
     void Go()
     {
+        anim.SetBool("Walk_Back", false);
+
+        anim.SetFloat("Run", 0.5f);
         transform.Translate(Vector3.forward * speed * Time.deltaTime, Space.Self);
+        h = Input.GetAxis("Horizontal");
+        anim.SetFloat("Turn", h / 3 * 2);
+
     }
-    public void NormalControls()
+
+    void GoBack()
     {
-        this.forward = 0;
-        this.back = 180;
-        this.right = 90;
-        this.left = -90;
-        this.leftBack = -135;
-        this.leftForward = -45;
-        this.rightBack = 135;
-        this.rightForward = 45;
-        Debug.Log("Normal");
+        anim.SetBool("Walk_Back", true);
+        transform.Translate(Vector3.back * (speed / 3 * 2) * Time.deltaTime, Space.Self);
+        h = Input.GetAxis("Horizontal");
+        anim.SetFloat("Turn", h / 3 * 2);
     }
-    public void ReversedControls()
+
+    public void PauseGame()
     {
-        this.forward = 180;
-        this.back = 0;
-        this.right = -90;
-        this.left = 90;
-        this.leftBack = 45;
-        this.leftForward = 135;
-        this.rightBack = -45;
-        this.rightForward = -135;
-        Debug.Log("Reversed!");
-    }
-    public void LeftControls()
-    {
-        this.forward = -90;
-        this.back = 90;
-        this.right = 0;
-        this.left = 180;
-        this.leftBack = 45;
-        this.leftForward = -45;
-        this.rightBack = 135;
-        this.rightForward = -135;
-        Debug.Log("Left!");
-    }
-    public void RightControls()
-    {
-        this.forward = 90;
-        this.back = -90;
-        this.right = 180;
-        this.left = 0;
-        this.leftBack = -45;
-        this.leftForward = 45;
-        this.rightBack = -135;
-        this.rightForward = 135;
-        Debug.Log("Right!");
+        if (!paused)
+        {
+            paused = true;
+            Time.timeScale = 0;
+            pauseMenu.SetActive(true);
+        }
+        else
+        {
+            paused = false;
+            Time.timeScale = 1;
+            pauseMenu.SetActive(false);
+        }
     }
 }
